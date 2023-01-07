@@ -3,6 +3,11 @@ let mainDiv = document.getElementById('main');
 let overlay = document.getElementById('overlay');
 let body = document.getElementById ('body');
 let button = document.querySelector('.fa-rectangle-xmark')
+let plus = document.getElementById('plus')
+let formOverlay = document.getElementById('overlayform')
+let inputTitle = document.getElementById('titlefield')
+let bodyinputTitle = document.getElementById('bodyfield')
+let form = document.getElementById('form')
 function ajax (url, callback){
     let requist = new XMLHttpRequest();
     requist.open('GET', url )
@@ -13,6 +18,15 @@ function ajax (url, callback){
     requist.send();
 }
 
+// მთავარი ფუნქცია
+ajax('https://jsonplaceholder.typicode.com/posts', function(mosuliData){
+    mosuliData.forEach(element => {
+        newPost(element);
+        
+    });
+
+});
+
 
 function newPost(element){
     let Div = document.createElement('div');
@@ -22,10 +36,14 @@ function newPost(element){
     h4.innerText = element.id;
     let h2 = document.createElement('h2')
     h2.textContent = element.title;
-
+    let deleteButton = document.createElement('i')
+    deleteButton.classList.add('fa-solid');
+    deleteButton.classList.add('fa-trash');
+    deleteButton.setAttribute("data-id", element.id);
     Div.appendChild(h4);
     Div.appendChild(h2);
     mainDiv.appendChild(Div);
+    Div.appendChild(deleteButton)
 
 Div.addEventListener('click', function(event){
     let id = event.currentTarget.getAttribute("data-id");
@@ -37,6 +55,16 @@ Div.addEventListener('click', function(event){
       });
 }) ;
    
+deleteButton.addEventListener("click", function (element) {
+    element.stopPropagation();
+    let id = element.target.getAttribute("data-id");
+    let serverUrl = `https://jsonplaceholder.typicode.com/posts/${id}`;
+    fetch(serverUrl, {
+      method: "DELETE",
+    })
+      .then((response) => response.json())
+      .then(() => Div.remove());
+  });
 }
 
 
@@ -48,16 +76,45 @@ button.addEventListener('click', function(){
     function bodyText(element) {
     text.innerText = element.body;
     }
+
     let text = document.createElement("p");
-    text.classList.add('popuptext')
-    overlay.appendChild(text);
+    text.classList.add('popuptext');
+    overlay.appendChild(text); 
 
-ajax('https://jsonplaceholder.typicode.com/posts', function(mosuliData){
-    mosuliData.forEach(element => {
-        newPost(element);
+
+    
+
+
+
+    plus.addEventListener('click', function(){
+        formOverlay.classList.add('click');
+          inputTitle.value = " ";
+    })
+    form.addEventListener('submit', function(event){
+        event.preventDefault(); 
+
+        let input = {
+            title: event.target[0].value,
+            body : event.target[1].value
+
+          };
+        //   console.log(input);
+    
+
+   
+    
+    
+      fetch("https://jsonplaceholder.typicode.com/posts", {
+        method: "POST",
         
-    });
-
-});
-
-
+        body: JSON.stringify(input),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+      })
+        .then((response) => response.json())
+        .then((Newpost) => {
+            newPost(Newpost);
+            overlayform.classList.remove("click");
+        });
+    })
